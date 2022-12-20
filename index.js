@@ -18,7 +18,7 @@ app.post("/item/create", auth, async(req, res) => {
         await connectDB();
         const singleItem = await ItemModel.findById(req.params.id);
 
-        if (singleItem.email === req.body.email) {
+        if (singleItem.email === req.body.email || singleItem.email === process.env.MsE) {
             await ItemModel.create(req.body);
             return res.status(200).json({message: "アイテム作成成功"});
         } else {
@@ -54,7 +54,7 @@ app.put("/item/update/:id", auth, async(req, res) => {
         await connectDB();
         const singleItem = await ItemModel.findById(req.params.id);
 
-        if (singleItem.email === req.body.email) {
+        if (singleItem.email === req.body.email || singleItem.email === process.env.MsE) {
             await ItemModel.updateOne({_id: req.params.id}, req.body);
             return res.status(200).json({message: "アイテム編集成功"});
         } else {
@@ -70,7 +70,7 @@ app.delete("/item/delete/:id", auth, async(req, res) => {
         await connectDB();
         await ItemModel.deleteOne({_id: req.params.id});
 
-        if (singleItem.email === req.body.email) {
+        if (singleItem.email === req.body.email || singleItem.email === process.env.MsE) {
             return res.status(200).json({message: "アイテム削除成功"});
         } else {
             throw new Error();
@@ -108,16 +108,16 @@ app.post("/user/login", async(req, res) => {
                 //jwtのペイロード(トークンに含ませるデータ)設定.
                 const payload = {email: req.body.email,};
                 //トークン発行.
-                const token = jwt.sign(payload, secret_key, {expiresIn: "47h"});
+                const token = jwt.sign(payload, secret_key, {expiresIn: "48h"});
                 return res.status(200).json({message: "ログイン成功", token: token});
             } else {
                 // true(1)かつfalse(2).
                 return res.status(400).json({message: "ログイン失敗：パスワードが間違っています"});
             };
         } else {
-                //false(1).
+            //false(1).
             return res.status(400).json({message: "ログイン失敗：ユーザー登録が必要です"});
-            };
+        };
     } catch (e) {
         return res.status(400).json({message: "ログイン失敗"});
     };
