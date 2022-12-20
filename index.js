@@ -1,23 +1,30 @@
-//expressのインポート(定数化).
+//expressを呼び出して定数化.
 const express = require("express");
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-//インポート(定数化).
+//呼び出して定数化.
 const connectDB = require("./utils/database");
 const { ItemModel, UserModel } = require("./utils/schemaModels");
 const jwt = require("jsonwebtoken");
-//.envから暗証番号インポート
+const auth = require("./utils/auth");
+//.envから暗証番号呼び出し.
 require("dotenv").config();
 
-//ITEMの作成、編集、削除.
-//Item　作成.
-app.post("/item/create", async(req, res) => {
+/*ITEMの作成、編集、削除.
+Item　作成.*/
+app.post("/item/create", auth, async(req, res) => {
     try{
         await connectDB();
-        await ItemModel.create(req.body);
-        return res.status(200).json({message: "アイテム作成成功"});
-    } catch(e){
+        const singleItem = await ItemModel.findById(req.params.id);
+
+        if (singleItem.email === req.body.email) {
+            await ItemModel.create(req.body);
+            return res.status(200).json({message: "アイテム作成成功"});
+        } else {
+        throw new Error();
+        };
+    } catch(e) {
         return res.status(400).json({message: "アイテム作成失敗"});
     };
 });
@@ -42,21 +49,32 @@ app.get("/item/:id", async(req, res) => {
     };
 });
 //Item　編集.
-app.put("/item/update/:id", async(req, res) => {
+app.put("/item/update/:id", auth, async(req, res) => {
     try {
         await connectDB();
-        await ItemModel.updateOne({_id: req.params.id}, req.body);
-        return res.status(200).json({message: "アイテム編集成功"});
+        const singleItem = await ItemModel.findById(req.params.id);
+
+        if (singleItem.email === req.body.email) {
+            await ItemModel.updateOne({_id: req.params.id}, req.body);
+            return res.status(200).json({message: "アイテム編集成功"});
+        } else {
+            throw new Error();
+        };
     } catch (e) {
         return res.status(400).json({message: "アイテム編集失敗"});
-    }
+    };
 });
 //Item　削除.
-app.delete("/item/delete/:id", async(req, res) => {
+app.delete("/item/delete/:id", auth, async(req, res) => {
     try {
-    await connectDB();
-    await ItemModel.deleteOne({_id: req.params.id})
-    return res.status(200).json({message: "アイテム削除成功"});
+        await connectDB();
+        await ItemModel.deleteOne({_id: req.params.id});
+
+        if (singleItem.email === req.body.email) {
+            return res.status(200).json({message: "アイテム削除成功"});
+        } else {
+            throw new Error();
+        };
     } catch (e) {
         return res.status(400).json({message: "アイテム削除失敗"});
     };
@@ -91,7 +109,6 @@ app.post("/user/login", async(req, res) => {
                 const payload = {email: req.body.email,};
                 //トークン発行.
                 const token = jwt.sign(payload, secret_key, {expiresIn: "47h"});
-                console.log(token);
                 return res.status(200).json({message: "ログイン成功", token: token});
             } else {
                 // true(1)かつfalse(2).
