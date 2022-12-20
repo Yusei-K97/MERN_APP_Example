@@ -1,8 +1,11 @@
 //expressを呼び出して定数化.
 const express = require("express");
 const app = express();
+//フロント→バック アクセス時、エラーcors解消パッケージ.
+const cors = require("cors");
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cors());
 //呼び出して定数化.
 const connectDB = require("./utils/database");
 const { ItemModel, UserModel } = require("./utils/schemaModels");
@@ -124,6 +127,5 @@ app.post("/user/login", async(req, res) => {
 });
 
 //出力.
-app.listen(5000, () => {
-    console.log("listening on localhost port 5000");
-});
+const port =  process.env.PORT || 5000;
+app.listen(port, () => {console.log(`Listening on localhost port ${port}`)});
